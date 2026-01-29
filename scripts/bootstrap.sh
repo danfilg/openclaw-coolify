@@ -27,10 +27,55 @@ chmod 700 "$MOLT_STATE/credentials"
 # Universal Permission Hardening (Runtime Fail-safe)
 # Ensures all global binaries are always executable
 echo "🛡️ HARDENING CLI PERMISSIONS..."
-# Universal Permission Hardening
-# Since we are root, we just ensure +x
+# Start universal permission hardening
 echo "🛡️ HARDENING CLI PERMISSIONS..."
 chmod -R +x /usr/local/bin/ || true
+
+# --- SEARCH & RESCUE: FIX PATHS FOR MISSING TOOLS ---
+echo "🕵️ SEARCHING FOR MISSING TOOLS..."
+POSSIBLE_PATHS=(
+  "/root/.bun/bin"
+  "/root/.moltbot/cache/.bun/bin"
+  "/root/.moltbot/bin"
+  "/root/.local/bin"
+  "/home/node/.bun/bin"
+)
+
+# Function to rescue a binary
+rescue_binary() {
+  local bin="$1"
+  if ! command -v "$bin" >/dev/null 2>&1; then
+    echo "  ❓ $bin not in PATH. Searching..."
+    found=""
+    for p in "${POSSIBLE_PATHS[@]}"; do
+      if [ -f "$p/$bin" ]; then
+        echo "  ✨ Found $bin at $p/$bin. Symlinking to /usr/local/bin..."
+        ln -sf "$p/$bin" "/usr/local/bin/$bin"
+        found="true"
+        break
+      fi
+    done
+    if [ -z "$found" ]; then
+      # Last resort: deep search in standard dirs (limited depth to be fast)
+      echo "  ⚠️ $bin still not found. Attempting deep search..."
+      deep_find=$(find /root /usr -maxdepth 4 -name "$bin" -type f -executable | head -n 1)
+      if [ -n "$deep_find" ]; then
+        echo "  ✨ Found via deep search at $deep_find. Symlinking..."
+        ln -sf "$deep_find" "/usr/local/bin/$bin"
+      else
+        echo "  ❌ Could not locate $bin anywhere."
+      fi
+    fi
+  else
+    echo "  ✅ $bin is already in PATH."
+  fi
+}
+
+# Rescue critical tools
+for target in moltbot gemini codex opencode claude kimi; do
+  rescue_binary "$target"
+done
+# ----------------------------------------------------
 
 # Tool Audit
 echo "🔍 AUDITING AI TOOL SUITE..."
@@ -223,7 +268,7 @@ cat >"$CONFIG_FILE" <<EOF
   "skills": {
     "allowBundled": ["*"],
     "install": {
-      "nodeManager": "npm"
+      "nodeManager": "bun"
     }
   },
   "plugins": {
