@@ -1,0 +1,11 @@
+.git
+.DS_Store
+.env
+.env.example
+node_modules
+dist
+build
+*.log
+docs/
+brain/
+tests/

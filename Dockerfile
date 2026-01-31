@@ -112,12 +112,15 @@ RUN bun install -g @openai/codex @google/gemini-cli opencode-ai @steipete/summar
 
 
 
-RUN ln -sf /root/.claude/bin/claude /usr/local/bin/claude || true && \
-    ln -sf /root/.kimi/bin/kimi /usr/local/bin/kimi || true
+# Copy everything (obeying .dockerignore)
+COPY . .
 
-COPY scripts/bootstrap.sh /app/scripts/bootstrap.sh
-COPY scripts/openclaw-approve.sh /usr/local/bin/openclaw-approve
-RUN chmod +x /app/scripts/bootstrap.sh /usr/local/bin/openclaw-approve
+# Specialized symlinks and permissions
+RUN ln -sf /root/.claude/bin/claude /usr/local/bin/claude || true && \
+    ln -sf /root/.kimi/bin/kimi /usr/local/bin/kimi || true && \
+    ln -sf /app/scripts/openclaw-approve.sh /usr/local/bin/openclaw-approve && \
+    chmod +x /app/scripts/bootstrap.sh /usr/local/bin/openclaw-approve
+
 
 EXPOSE 18789
 CMD ["bash", "/app/scripts/bootstrap.sh"]
