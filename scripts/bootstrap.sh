@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
+if [ -f "/app/scripts/migrate-to-data.sh" ]; then
+    bash "/app/scripts/migrate-to-data.sh"
+fi
+
 OPENCLAW_STATE="${OPENCLAW_STATE_DIR:-/data/.openclaw}"
 CONFIG_FILE="$OPENCLAW_STATE/openclaw.json"
 WORKSPACE_DIR="${OPENCLAW_WORKSPACE:-/data/openclaw-workspace}"

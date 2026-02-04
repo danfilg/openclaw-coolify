@@ -84,6 +84,8 @@ services:
 
     volumes:
       - openclaw-data:/data
+      - openclaw-config:/root/.openclaw
+      - openclaw-workspace:/root/openclaw-workspace
 
       # Secure: Socket mount removed in favor of proxy
       # - /var/run/docker.sock:/var/run/docker.sock
@@ -134,5 +136,7 @@ services:
 
 volumes:
   openclaw-data:
+  openclaw-config:
+  openclaw-workspace:
   searxng-data:
   registry-data:
